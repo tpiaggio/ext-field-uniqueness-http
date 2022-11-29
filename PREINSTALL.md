@@ -15,6 +15,8 @@ In the following example, we'll be using _users_ and _username_ as the collectio
 ```js
 const data = {
   change: "CREATE",
+  collection: "users",
+  fieldName: "username"
   document: {
     id,
     username
