@@ -1,3 +1,7 @@
+## Version 0.1.2
+
+Added the _require auth_ parameter upon installation, so developers can decide wether or not to check this function to be invoked only by authenticated users.
+
 ## Version 0.1.1
 
 Removed the _collection_ and _fieldName_ parameters upon installation, and included them as parameters of the callable function.
