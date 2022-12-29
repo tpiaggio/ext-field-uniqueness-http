@@ -40,6 +40,8 @@ callable(data)
 });
 ```
 
+You should also indicate in your security rules that the collection, in this example called _users_, should have `allow write: if false;` as a security rule, since we don't want to allow the client to write to this collection, only the HTTP callable function should be writing to it.
+
 #### Additional setup
 
 Before installing this extension, make sure that you've [set up a Cloud Firestore database](https://firebase.google.com/docs/firestore/quickstart) in your Firebase project.
@@ -55,6 +57,8 @@ To install an extension, your project must be on the [Blaze (pay as you go) plan
 **Configuration Parameters:**
 
 * Hash field: The value of the unique field will be used as an id for a new document in Firestore. Would you like to hash the value of the field due to contraints on document IDs?
+
+* Require auth: Would you like to check for user authentication inside the Cloud Function?
 
 * Cloud Functions location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 

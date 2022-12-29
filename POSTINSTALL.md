@@ -10,7 +10,9 @@ You can test out this extension right away!
 
 1.  This newly created collection and documents will prevent the client creating documents with duplicate values for the specified field, since we're using transactions inside the function that check the uniqueness of the specified field.
 
-1.  You also have the option to hash the field selecting 'Yes' when prompted to hash the field upon installation, due to contraints on document IDs.
+1.  You have the option to hash the field selecting 'Yes' when prompted to hash the field upon installation, due to contraints on document IDs.
+
+1.  You also have the option to require auth selecting 'Yes' when prompted to require auth upon installation, since you may want this function to be invoked only by authenticated users.
 
 
 #### Using the extension

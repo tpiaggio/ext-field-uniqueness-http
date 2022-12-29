@@ -33,6 +33,8 @@ callable(data)
 });
 ```
 
+You should also indicate in your security rules that the collection, in this example called _users_, should have `allow write: if false;` as a security rule, since we don't want to allow the client to write to this collection, only the HTTP callable function should be writing to it.
+
 #### Additional setup
 
 Before installing this extension, make sure that you've [set up a Cloud Firestore database](https://firebase.google.com/docs/firestore/quickstart) in your Firebase project.

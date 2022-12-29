@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
-import * as functions from 'firebase-functions';
+import * as functions from "firebase-functions";
 
-import * as md5 from 'md5';
+import * as md5 from "md5";
 
 enum ChangeType {
   CREATE,
@@ -11,6 +11,7 @@ enum ChangeType {
 
 const config = {
   location: process.env.LOCATION || "",
+  requireAuth: process.env.REQUIRE_AUTH || "",
   hashField: process.env.HASH_FIELD || "",
 };
 
@@ -27,34 +28,34 @@ type Data = {
 admin.initializeApp();
 
 exports.fieldUniqueness =  functions.handler.https.onCall(async (data: Data, context) => {
-  if (!context.auth) {
+  if (!context.auth && config.requireAuth === "yes") {
     throw new functions.https.HttpsError(
-      'unauthenticated',
-      'User must be authenticated.',
+      "unauthenticated",
+      "User must be authenticated.",
     );
   }
   const {change, collection, fieldName} = data;
-  if (!(typeof change === 'string') || change.length === 0) {
+  if (!(typeof change === "string") || change.length === 0) {
     throw new functions.https.HttpsError(
-      'invalid-argument', 
-      'The function must be called with one argument "change" containing the type of change to execute.'
+      "invalid-argument", 
+      "The function must be called with one argument \"change\" containing the type of change to execute."
     );
   }
   const regex = new RegExp("^[^/]+(/[^/]+/[^/]+)*$");
-  if (!(typeof collection === 'string') || collection.length === 0 || !regex.test(collection)) {
+  if (!(typeof collection === "string") || collection.length === 0 || !regex.test(collection)) {
     throw new functions.https.HttpsError(
-      'invalid-argument', 
-      'The function must be called with one argument "collection" containing a valid Firestore collection.'
+      "invalid-argument", 
+      "The function must be called with one argument \"collection\" containing a valid Firestore collection."
     );
   }
-  if (!(typeof fieldName === 'string') || fieldName.length === 0 || !regex.test(fieldName)) {
+  if (!(typeof fieldName === "string") || fieldName.length === 0 || !regex.test(fieldName)) {
     throw new functions.https.HttpsError(
-      'invalid-argument', 
-      'The function must be called with one argument "fieldName" containing a valid Firestore field.'
+      "invalid-argument", 
+      "The function must be called with one argument \"fieldName\" containing a valid Firestore field."
     );
   }
   const changeType = getChangeType(data.change);
-  functions.logger.log('Started execution of Field Uniqueness extension');
+  functions.logger.log("Started execution of Field Uniqueness extension");
   switch (changeType) {
     case ChangeType.CREATE:
       await handleCreateDocument(data);
@@ -66,7 +67,7 @@ exports.fieldUniqueness =  functions.handler.https.onCall(async (data: Data, con
       await handleUpdateDocument(data);
       break;
   }
-  functions.logger.log('Completed execution of Field Uniqueness extension');
+  functions.logger.log("Completed execution of Field Uniqueness extension");
   return {
     message: "Document written with unique field"
   };
@@ -77,16 +78,16 @@ const auxCollection = (data: Data) => admin.firestore().collection(data.collecti
 
 const extractUniqueField = (data: Data): string => {
   const field = data.document[data.fieldName];
-  return (field && config.hashField === 'yes') ? md5(field) : field;
+  return (field && config.hashField === "yes") ? md5(field) : field;
 };
 
 const getChangeType = (
   change: string
 ): ChangeType => {
-  if (change === 'DELETE') {
+  if (change === "DELETE") {
     return ChangeType.DELETE;
   }
-  if (change === 'CREATE') {
+  if (change === "CREATE") {
     return ChangeType.CREATE;
   }
   return ChangeType.UPDATE;
@@ -101,8 +102,8 @@ const handleCreateDocument = async (
       const doc = await t.get(auxCollection(data).doc(uniqueField));
       if(doc.exists) {
         throw new functions.https.HttpsError(
-          'already-exists', 
-          'Document with unique field already exists.'
+          "already-exists", 
+          "Document with unique field already exists."
         );
       } else {
         t.set(
@@ -112,12 +113,12 @@ const handleCreateDocument = async (
           auxCollection(data).doc(uniqueField), 
           {id: data.document.id, [data.fieldName]: data.document[data.fieldName]}
         );
-        functions.logger.log('Document created with unique field');
+        functions.logger.log("Document created with unique field");
       }
     });
   } else {
     await collection(data).doc(data.document.id).set(data.document);
-    functions.logger.log('Document created without unique field');
+    functions.logger.log("Document created without unique field");
   }
 };
 
@@ -133,10 +134,10 @@ const handleDeleteDocument = async (
       auxCollection(data).doc(uniqueField)
     );
     await batch.commit();
-    functions.logger.log('Document deleted with unique field');
+    functions.logger.log("Document deleted with unique field");
   } else {
     await collection(data).doc(data.document.id).delete();
-    functions.logger.log('Document deleted without unique field');
+    functions.logger.log("Document deleted without unique field");
   }
 };
 
@@ -156,15 +157,16 @@ const handleUpdateDocument = async (
   if ((uniqueFieldBefore === undefined && uniqueFieldAfter === undefined) || 
     (uniqueFieldBefore === uniqueFieldAfter)) {
     await collection(data).doc(data.document.id).update(data.document);
-    functions.logger.log('Document updated without unique field');
+    functions.logger.log("Document updated without unique field");
+    return;
   }
 
   await admin.firestore().runTransaction(async (t) => {
     const doc = await t.get(auxCollection(data).doc(uniqueFieldAfter));
     if(doc.exists) {
       throw new functions.https.HttpsError(
-        'already-exists', 
-        'Document with unique field already exists.'
+        "already-exists", 
+        "Document with unique field already exists."
       );
     } else {
       if (uniqueFieldBefore) {
@@ -177,7 +179,7 @@ const handleUpdateDocument = async (
         auxCollection(data).doc(uniqueFieldAfter), 
         {id: data.document.id, [data.fieldName]: data.document[data.fieldName]}
       );
-      functions.logger.log('Document updated with unique field');
+      functions.logger.log("Document updated with unique field");
     }
   });
 };
