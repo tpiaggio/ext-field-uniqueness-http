@@ -4,6 +4,7 @@ import { getExtensions } from "firebase-admin/extensions";
 import { getFunctions } from "firebase-admin/functions";
 
 import * as md5 from "md5";
+import { Data } from "./utils";
 
 enum ChangeType {
   CREATE,
@@ -22,19 +23,9 @@ const config = {
 
 const DOCS_PER_BACKFILL = 250;
 
-type Data = {
-  change: string,
-  collection: string,
-  fieldName: string,
-  document: {
-    id: string,
-    [fieldName: string]: string
-  }
-}
-
 admin.initializeApp();
 
-exports.fieldUniqueness =  functions.handler.https.onCall(async (data: Data, context) => {
+export const fieldUniqueness =  functions.https.onCall(async (data: Data, context) => {
   if (!context.auth && config.requireAuth === "yes") {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -48,6 +39,13 @@ exports.fieldUniqueness =  functions.handler.https.onCall(async (data: Data, con
       "The function must be called with one argument \"change\" containing the type of change to execute."
     );
   }
+  const changeType = getChangeType(data.change);
+  if (changeType === ChangeType.INVALID) {
+    throw new functions.https.HttpsError(
+      "invalid-argument", 
+      "The value of the argument \"change\" is not valid."
+    );
+  }
   const regex = new RegExp("^[^/]+(/[^/]+/[^/]+)*$");
   if (!(typeof collection === "string") || collection.length === 0 || !regex.test(collection)) {
     throw new functions.https.HttpsError(
@@ -59,13 +57,6 @@ exports.fieldUniqueness =  functions.handler.https.onCall(async (data: Data, con
     throw new functions.https.HttpsError(
       "invalid-argument", 
       "The function must be called with one argument \"fieldName\" containing a valid Firestore field."
-    );
-  }
-  const changeType = getChangeType(data.change);
-  if (changeType === ChangeType.INVALID) {
-    throw new functions.https.HttpsError(
-      "invalid-argument", 
-      "The value of the argument \"change\" is not valid."
     );
   }
   functions.logger.log("Started execution of Field Uniqueness extension");
