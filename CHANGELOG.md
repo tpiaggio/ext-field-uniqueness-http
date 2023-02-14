@@ -1,3 +1,7 @@
+## Version 0.1.4
+
+added testing using jest and the Firebase Emulator Suite.
+
 ## Version 0.1.3
 
 feature - Added backfill capabilities so that we can have existing documents in the Firestore collection be checked for field uniqueness.
