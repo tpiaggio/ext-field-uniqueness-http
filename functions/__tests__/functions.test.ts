@@ -22,7 +22,7 @@ jest.spyOn(admin, 'initializeApp').mockImplementation();
 import * as funcs from '../src/index';
 import { Data } from "../src/utils";
 import { waitForDocumentDelete, waitForDocumentToExistInCollection } from "./helpers";
-//import { waitForDocumentToExistInCollection } from './helpers';
+
 /** prepare extension functions */
 const fieldUniquenessFn = fft.wrap(funcs.fieldUniqueness);
 
